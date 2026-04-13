@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The King Killer Chronicle: A Text Adventure</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    #gameContainer {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+      height: 90vh;
+    }
+
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      background: rgba(20, 25, 40, 0.8);
+      border: 2px solid #8b7355;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      max-height: 90vh;
+    }
+
+    .header {
+      background: linear-gradient(to right, #2d3561, #16213e);
+      padding: 20px;
+      border-bottom: 2px solid #8b7355;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      color: #d4af37;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      margin-bottom: 5px;
+      font-weight: normal;
+      letter-spacing: 2px;
+    }
+
+    .header p {
+      color: #a8a8a8;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .game-output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #c0c0c0;
+      background: rgba(15, 20, 35, 0.6);
+      border-bottom: 1px solid #8b7355;
+    }
+
+    .game-output::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .game-output::-webkit-scrollbar-track {
+      background: rgba(20, 25, 40, 0.5);
+    }
+
+    .game-output::-webkit-scrollbar-thumb {
+      background: #8b7355;
+      border-radius: 4px;
+    }
+
+    .input-section {
+      padding: 15px;
+      border-top: 1px solid #8b7355;
+      background: rgba(20, 25, 40, 0.95);
+      flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    #commandInput {
+      flex: 1;
+      padding: 10px 12px;
+      background: rgba(40, 40, 60, 0.8);
+      border: 1px solid #8b7355;
+      color: #e0e0e0;
+      font-family: 'Georgia', serif;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+
+    #commandInput:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+    }
+
+    #submitBtn {
+      padding: 10px 20px;
+      background: linear-gradient(to bottom, #8b7355, #6b5345);
+      border: 1px solid #d4af37;
+      color: #d4af37;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-size: 14px;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    #submitBtn:hover {
+      background: linear-gradient(to bottom, #9b8365, #7b6355);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .quick-btn {
+      padding: 8px 12px;
+      background: rgba(60, 60, 80, 0.6);
+      border: 1px solid #666;
+      color: #b0b0b0;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-size: 12px;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+
+    .quick-btn:hover {
+      background: rgba(80, 80, 100, 0.8);
+      border-color: #8b7355;
+      color: #d4af37;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .status-panel {
+      background: rgba(20, 25, 40, 0.8);
+      border: 2px solid #8b7355;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .status-panel h3 {
+      color: #d4af37;
+      margin-bottom: 12px;
+      font-size: 14px;
+      border-bottom: 1px solid #8b7355;
+      padding-bottom: 8px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .status-line {
+      margin: 6px 0;
+      color: #b0b0b0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .status-label {
+      color: #888;
+    }
+
+    .status-value {
+      color: #d4af37;
+      font-weight: bold;
+    }
+
+    .relationship-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(40, 40, 60, 0.8);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .relationship-fill {
+      height: 100%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .rel-low { background: #cc3333; }
+    .rel-medium { background: #d4af37; }
+    .rel-high { background: #33cc33; }
+
+    .npc-line {
+      margin: 8px 0;
+    }
+
+    .feedback-message {
+      color: #33cc33;
+      font-style: italic;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .dialogue-text {
+      color: #d4af37;
+      font-weight: bold;
+      margin: 10px 0 5px 0;
+    }
+
+    .dialogue-content {
+      color: #c0c0c0;
+      margin: 5px 0 10px 10px;
+      border-left: 2px solid #8b7355;
+      padding-left: 10px;
+    }
+
+    .skill-result {
+      font-weight: bold;
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    .skill-success {
+      background: rgba(51, 204, 51, 0.2);
+      color: #33cc33;
+    }
+
+    .skill-failure {
+      background: rgba(204, 51, 51, 0.2);
+      color: #cc3333;
+    }
+
+    @media (max-width: 900px) {
+      #gameContainer {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .quick-actions {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <div class="main-panel">
+      <div class="header">
+        <h1>THE KING KILLER CHRONICLE</h1>
+        <p>A UNIVERSITY ADVENTURE</p>
+      </div>
+      <div id="gameOutput" class="game-output"></div>
+      <div class="input-section">
+        <div class="quick-actions">
+          <button class="quick-btn" data-cmd="look">Look</button>
+          <button class="quick-btn" data-cmd="north">Go North</button>
+          <button class="quick-btn" data-cmd="south">Go South</button>
+          <button class="quick-btn" data-cmd="east">Go East</button>
+          <button class="quick-btn" data-cmd="west">Go West</button>
+          <button class="quick-btn" data-cmd="wait">Wait</button>
+          <button class="quick-btn" data-cmd="eat">Eat</button>
+          <button class="quick-btn" data-cmd="sleep">Sleep</button>
+          <button class="quick-btn" data-cmd="busk">Busk</button>
+          <button class="quick-btn" data-cmd="pay tuition">Pay Tuition</button>
+          <button class="quick-btn" data-cmd="attend artificing">Artificing Class</button>
+          <button class="quick-btn" data-cmd="attend sympathy">Sympathy Class</button>
+          <button class="quick-btn" data-cmd="attend naming">Naming Seminar</button>
+          <button class="quick-btn" data-cmd="status">Status</button>
+          <button class="quick-btn" data-cmd="inventory">Inventory</button>
+        </div>
+        <div class="input-group">
+          <input type="text" id="commandInput" placeholder="Enter command or type 'help'..." autofocus>
+          <button id="submitBtn">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="status-panel">
+        <h3>CHARACTER</h3>
+        <div class="status-line">
+          <span class="status-label">Name:</span>
+          <span id="charName" class="status-value">Kvothe</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Location:</span>
+          <span id="charLocation" class="status-value">Mains</span>
+        </div>
+      </div>
+
+      <div class="status-panel">
+        <h3>RESOURCES</h3>
+        <div class="status-line">
+          <span class="status-label">Money:</span>
+          <span id="charMoney" class="status-value">3 talents</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Rank:</span>
+          <span id="charRank" class="status-value">E_lir</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Tuition:</span>
+          <span id="charTuition" class="status-value">1000 drabs due in 29 days</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Classes:</span>
+          <span id="charClasses" class="status-value">0 attended</span>
+        </div>
+      </div>
+
+      <div class="status-panel">
+        <h3>CONDITION</h3>
+        <div class="status-line">
+          <span class="status-label">Hunger:</span>
+          <span id="charHunger" class="status-value">well-fed</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Fatigue:</span>
+          <span id="charFatigue" class="status-value">rested</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Time:</span>
+          <span id="charTime" class="status-value">morning</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Day:</span>
+          <span id="charDay" class="status-value">1</span>
+        </div>
+      </div>
+
+      <div class="status-panel">
+        <h3>DIALOGUE SKILLS</h3>
+        <div class="status-line">
+          <span class="status-label">Wit:</span>
+          <span id="skillWit" class="status-value">45</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Empathy:</span>
+          <span id="skillEmpathy" class="status-value">50</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Authority:</span>
+          <span id="skillAuthority" class="status-value">40</span>
+        </div>
+        <div class="status-line">
+          <span class="status-label">Scholarship:</span>
+          <span id="skillScholarship" class="status-value">55</span>
+        </div>
+      </div>
+
+      <div class="status-panel">
+        <h3>NPC STANDING</h3>
+        <div class="npc-line">
+          <div class="status-line">
+            <span class="status-label">Simmon:</span>
+            <span id="relSimmon" class="status-value">50</span>
+          </div>
+          <div class="relationship-bar">
+            <div id="relSimmonBar" class="relationship-fill rel-medium" style="width: 50%"></div>
+          </div>
+        </div>
+        <div class="npc-line">
+          <div class="status-line">
+            <span class="status-label">Wilem:</span>
+            <span id="relWilem" class="status-value">40</span>
+          </div>
+          <div class="relationship-bar">
+            <div id="relWilemBar" class="relationship-fill rel-low" style="width: 40%"></div>
+          </div>
+        </div>
+        <div class="npc-line">
+          <div class="status-line">
+            <span class="status-label">Elodin:</span>
+            <span id="relElodin" class="status-value">50</span>
+          </div>
+          <div class="relationship-bar">
+            <div id="relElodinBar" class="relationship-fill rel-medium" style="width: 50%"></div>
+          </div>
+        </div>
+        <div class="npc-line">
+          <div class="status-line">
+            <span class="status-label">Kilvin:</span>
+            <span id="relKilvin" class="status-value">50</span>
+          </div>
+          <div class="relationship-bar">
+            <div id="relKilvinBar" class="relationship-fill rel-medium" style="width: 50%"></div>
+          </div>
+        </div>
+        <div class="npc-line">
+          <div class="status-line">
+            <span class="status-label">Master Dal:</span>
+            <span id="relDal" class="status-value">50</span>
+          </div>
+          <div class="relationship-bar">
+            <div id="relDalBar" class="relationship-fill rel-medium" style="width: 50%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== GAME DATA ====================
+    const LOCATION_FLAVOUR = {
+      university_mains: [
+        'A pair of students pass in low argument, their voices swallowed by stone.',
+        'The air tastes faintly of chalk and old mortar.',
+        'Somewhere nearby, a door shuts with a heavy academic finality.',
+        'Dust hangs pale in a shaft of light before vanishing back into the corridor gloom.'
+      ],
+      university_artificery: [
+        'A bright note of metal on metal rings out and fades.',
+        'Warmth brushes past from a workroom, touched with coal and oil.',
+        'Someone mutters over a stubborn piece of work beyond sight.',
+        'The smell of hot brass lingers in the back of your throat.'
+      ],
+      university_archives_exterior: [
+        'The steps hold the day\'s coolness longer than the open paths do.',
+        'A careful hush gathers here, as if the stones themselves prefer quiet.',
+        'The scrape of turning pages drifts from somewhere near the entrance.',
+        'Students slow their pace on the steps without seeming to know why.'
+      ],
+      university_archives_stacks: [
+        'Leather, paste, and old paper press close in the still air.',
+        'Every shelf seems to ask for quieter hands and quieter thoughts.',
+        'A distant footfall slips between the shelves and disappears.',
+        'The ordered silence here feels almost stern.'
+      ],
+      university_medica: [
+        'The scent of herbs settles over everything, clean but slightly bitter.',
+        'Linen rustles softly from somewhere deeper in the rooms.',
+        'A basin clinks faintly, followed by a murmur too low to make out.',
+        'The careful quiet of the Medica makes every careless step feel loud.'
+      ],
+      university_mews_room: [
+        'The room keeps last night\'s chill in the corners.',
+        'Your few possessions make the poverty of the place plain without needing to insist on it.',
+        'The bed gives a small complaint whenever you shift your weight.',
+        'Morning finds even this cramped room in measured, colorless light.'
+      ],
+      university_mews_corridor: [
+        'Someone farther down the corridor moves with the careful tread of a student trying not to wake anyone.',
+        'The walls hold the stale warmth of too many rooms built close together.',
+        'A draft slips under one ill-fitted door and is gone again.',
+        'The hallway smells faintly of dust, wool, and cheap soap.'
+      ],
+      university_courtyard: [
+        'The yard carries fragments of conversation away before they can settle into anything clear.',
+        'Boots scuff grit across the stone where the morning traffic thickens and thins.',
+        'A bell in the distance leaves a faint urgency in the air.',
+        'The open space feels briefly calm between one passing crowd and the next.'
+      ],
+      university_ankers: [
+        'Cups knock softly against the tables while someone laughs at the far end of the room.',
+        'The smell of bread and ale is stronger near the bar than anywhere else.',
+        'A server squeezes past with practiced patience and does not spill a drop.',
+        'Coins click on wood somewhere nearby, small sounds with large consequences.'
+      ],
+      university_fishery_outer: [
+        'Heat gathers at face level, then shifts away in a slow industrial breath.',
+        'A file rasps over metal with a sound that leaves the teeth on edge.',
+        'Light catches on tools, bright and hard, before dropping back into the work.',
+        'Someone curses quietly at a stubborn piece and starts again.'
+      ],
+      university_mains_hall: [
+        'The hall seems built as much for endurance as for learning.',
+        'A dry smell of chalk and old wood lingers in the benches.',
+        'Even when empty, the room feels watched by habit and expectation.',
+        'A cough from the far side of the hall comes back to you a little thinner than it left.'
+      ],
+      university_library_reading_room: [
+        'Tables stretch into neat rows, each with its small pool of light and silence.',
+        'The scratch of quills and the turn of pages form a quiet rhythm.',
+        'Dust particles hang in the afternoon light like tiny suspended thoughts.',
+        'The smell of leather bindings and lamp oil settles over everything.'
+      ],
+      university_kilns: [
+        'Heat rises from the work, making the air shimmer and bend strangely.',
+        'Clay dust hangs like a fine mist, catching the light in pale spirals.',
+        'Someone works with patient focus, shaping and reshaping without hurry.',
+        'The smell of earth and fire mingles with something sharper and stranger.'
+      ],
+      university_gardens: [
+        'Green grows here in defiance of the stone pressed close on every side.',
+        'The smell of growing things and turned earth settles on your clothes.',
+        'Bees move between flowers with single-minded purpose.',
+        'The air tastes fresher here, less weighted with dust and worry.'
+      ],
+      university_kitchen: [
+        'Steam rises from pots and pans, carrying the smell of bread and warming food.',
+        'Voices call orders back and forth in practiced rhythm and shorthand.',
+        'The scrape and clatter of kitchen work surrounds you like a familiar song.',
+        'The warmth here is the warmth of something sustaining, something necessary.'
+      ],
+      university_dormitory_commons: [
+        'The common room holds the comfortable clutter of student life.',
+        'Cards game in one corner, quiet conversation in another, someone reading by the window.',
+        'The air tastes of candle smoke and old wood, worn smooth by generations.',
+        'The place has the feel of somewhere that holds its own counsel.'
+      ],
+      university_apothecary: [
+        'Shelves line the walls, crowded with bottles, jars, and mysterious bundles.',
+        'The smell is complex and strange—bitter herbs, animal musk, and something sharper.',
+        'A careful quiet fills the space, as if the contents deserve respect and silence.',
+        'Everything here seems poised between cure and poison.'
+      ],
+      university_master_dalcenti_study: [
+        'Books cover nearly every surface, stacked with careful casualness.',
+        'Afternoon light falls through tall windows, illuminating dust motes that dance like thoughts.',
+        'The room smells of aged paper, leather, and something else—knowledge, perhaps, or its weight.',
+        'A sense of ordered scholarship fills the space, patient and demanding.'
+      ]
+    };
+
+    const SEED_LOCATIONS = [
+      {
+        id: 'university_mains',
+        name: 'the Mains',
+        description_base: 'Stone passages gather the traffic of the University into a steady hush of footsteps and low conversation. Cool air lingers in the shaded ways, carrying the faint smell of paper, dust, and worked metal.',
+        exits: [
+          { direction: 'north', target_location_id: 'university_artificery' },
+          { direction: 'east', target_location_id: 'university_archives_exterior' },
+          { direction: 'south', target_location_id: 'university_medica' },
+          { direction: 'west', target_location_id: 'university_courtyard' },
+          { direction: 'enter', target_location_id: 'university_mains_hall' }
+        ]
+      },
+      {
+        id: 'university_artificery',
+        name: 'the Artificery',
+        description_base: 'The air here holds the sharp tang of hot metal and lamp oil. Hammering rings from deeper within, and every sound seems edged with the patience of careful work.',
+        exits: [
+          { direction: 'south', target_location_id: 'university_mains' },
+          { direction: 'down', target_location_id: 'university_fishery_outer' }
+        ]
+      },
+      {
+        id: 'university_archives_exterior',
+        name: 'the Archives, outer steps',
+        description_base: 'Broad stone steps rise toward the Archives, worn smooth by years of passing feet. The place has a grave stillness to it, broken only by the scrape of shoes and the quiet turn of pages nearby.',
+        exits: [
+          { direction: 'west', target_location_id: 'university_mains' },
+          { direction: 'enter', target_location_id: 'university_archives_stacks', access_condition: 'requires_Re_lar' },
+          { direction: 'north', target_location_id: 'university_library_reading_room' }
+        ]
+      },
+      {
+        id: 'university_archives_stacks',
+        name: 'the Stacks',
+        description_base: 'The Stacks swallow sound beneath a weight of paper, leather, and old bindings. The air is cool and dry, and even a quiet breath feels loud among so many ordered shelves.',
+        exits: [
+          { direction: 'out', target_location_id: 'university_archives_exterior' }
+        ]
+      },
+      {
+        id: 'university_medica',
+        name: 'the Medica',
+        description_base: 'Clean linen, bitter tinctures, and steeped herbs mark the Medica before anything else. Voices stay low here, and the rooms feel orderly in a way that encourages caution.',
+        exits: [
+          { direction: 'north', target_location_id: 'university_mains', access_condition: 'locked_at_night' },
+          { direction: 'east', target_location_id: 'university_apothecary' }
+        ]
+      },
+      {
+        id: 'university_mews_room',
+        name: "Kvothe's room, the Mews",
+        description_base: 'The room is narrow, spare, and cheap, with just enough space for bed, case, and the day\'s small necessities. Morning light comes grudgingly here, touching bare surfaces and making the cold feel honest.',
+        exits: [
+          { direction: 'out', target_location_id: 'university_mews_corridor' }
+        ]
+      },
+      {
+        id: 'university_mews_corridor',
+        name: 'the Mews corridor',
+        description_base: 'The corridor is plain and close, its boards and plaster showing the wear of student lodgings without ceremony. Sounds carry easily here: a door latch, a cough, the creak of someone leaving early for class.',
+        exits: [
+          { direction: 'in', target_location_id: 'university_mews_room' },
+          { direction: 'south', target_location_id: 'university_courtyard' }
+        ]
+      },
+      {
+        id: 'university_courtyard',
+        name: 'the University courtyard',
+        description_base: 'Open air and stone meet here in a space crossed by students with books under arm and business on their faces. Wind shifts across the yard carrying damp earth, distant forge heat, and the restless sense of a day already underway.',
+        exits: [
+          { direction: 'north', target_location_id: 'university_mews_corridor' },
+          { direction: 'east', target_location_id: 'university_mains' },
+          { direction: 'west', target_location_id: 'university_ankers' },
+          { direction: 'south', target_location_id: 'university_gardens' }
+        ]
+      },
+      {
+        id: 'university_ankers',
+        name: "Anker's inn",
+        description_base: 'Anker\'s is busy in the practical way of a place that feeds students and hears more than it repeats. Warm food, stale ale, and old wood give the room its character, while the talk rises and falls without ever quite settling.',
+        exits: [
+          { direction: 'east', target_location_id: 'university_courtyard' }
+        ]
+      },
+      {
+        id: 'university_fishery_outer',
+        name: 'the Fishery, outer workspace',
+        description_base: 'Benches, tools, and heat define the space more than any ornament could. The smell of metal and old scorch hangs in the air, and the noise of careful labor never quite dies away.',
+        exits: [
+          { direction: 'up', target_location_id: 'university_artificery' },
+          { direction: 'east', target_location_id: 'university_kilns' }
+        ]
+      },
+      {
+        id: 'university_mains_hall',
+        name: 'the Mains, lecture hall',
+        description_base: 'The hall holds the dry stillness of a room built for listening and note-taking. Voices carry plainly here, and the benches keep the memory of long hours, lectures, and examinations.',
+        exits: [
+          { direction: 'out', target_location_id: 'university_mains' }
+        ]
+      },
+      {
+        id: 'university_library_reading_room',
+        name: 'the Library, reading room',
+        description_base: 'Tables stretch into neat rows, each with its small pool of light and silence. The scratch of quills and the turn of pages form a quiet rhythm beneath the weight of all these gathered words.',
+        exits: [
+          { direction: 'south', target_location_id: 'university_archives_exterior' },
+          { direction: 'west', target_location_id: 'university_master_dalcenti_study' }
+        ]
+      },
+      {
+        id: 'university_kilns',
+        name: 'the Kilns',
+        description_base: 'Heat rises from the work, making the air shimmer and bend strangely. Clay dust hangs like a fine mist, catching the light in pale spirals.',
+        exits: [
+          { direction: 'west', target_location_id: 'university_fishery_outer' }
+        ]
+      },
+      {
+        id: 'university_gardens',
+        name: 'the University gardens',
+        description_base: 'Green grows here in defiance of the stone pressed close on every side. The smell of growing things and turned earth settles on your clothes.',
+        exits: [
+          { direction: 'north', target_location_id: 'university_courtyard' },
+          { direction: 'south', target_location_id: 'university_kitchen' }
+        ]
+      },
+      {
+        id: 'university_kitchen',
+        name: 'the Kitchen',
+        description_base: 'Steam rises from pots and pans, carrying the smell of bread and warming food. The scrape and clatter of kitchen work surrounds you like a familiar song.',
+        exits: [
+          { direction: 'north', target_location_id: 'university_gardens' },
+          { direction: 'east', target_location_id: 'university_dormitory_commons' }
+        ]
+      },
+      {
+        id: 'university_dormitory_commons',
+        name: 'the Dormitory commons',
+        description_base: 'The common room holds the comfortable clutter of student life. Cards game in one corner, quiet conversation in another, someone reading by the window.',
+        exits: [
+          { direction: 'west', target_location_id: 'university_kitchen' },
+          { direction: 'north', target_location_id: 'university_medica' }
+        ]
+      },
+      {
+        id: 'university_apothecary',
+        name: 'the Apothecary',
+        description_base: 'Shelves line the walls, crowded with bottles, jars, and mysterious bundles. The smell is complex and strange—bitter herbs, animal musk, and something sharper.',
+        exits: [
+          { direction: 'west', target_location_id: 'university_medica' }
+        ]
+      },
+      {
+        id: 'university_master_dalcenti_study',
+        name: "Master Dalcenti's study",
+        description_base: 'Books cover nearly every surface, stacked with careful casualness. Afternoon light falls through tall windows, illuminating dust motes that dance like thoughts.',
+        exits: [
+          { direction: 'east', target_location_id: 'university_library_reading_room' }
+        ]
+      }
+    ];
+
+    // ==================== UTILITY FUNCTIONS ====================
+    function capitalizeFirst(value) {
+      return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    function timeIndex(time) {
+      const times = { morning: 0, afternoon: 1, evening: 2, night: 3 };
+      return times[time] || 0;
+    }
+
+    function timeLabel(time) {
+      const labels = {
+        morning: 'the early morning',
+        afternoon: 'the afternoon',
+        evening: 'the evening',
+        night: 'deep in the night'
+      };
+      return labels[time] || time;
+    }
+
+    function getFlavourLine(locationId, state) {
+      const flavours = LOCATION_FLAVOUR[locationId];
+      if (!flavours || flavours.length === 0) return '';
+      const index = (state.day_number + timeIndex(state.time_of_day)) % flavours.length;
+      return flavours[index];
+    }
+
+    function formatCurrency(drabs) {
+      if (drabs === 0) return 'nothing';
+      const talents = Math.floor(drabs / 100);
+      const jots = Math.floor((drabs % 100) / 10);
+      const remaining = drabs % 10;
+      const parts = [];
+      if (talents > 0) parts.push(talents + ' talent' + (talents > 1 ? 's' : ''));
+      if (jots > 0) parts.push(jots + ' jot' + (jots > 1 ? 's' : ''));
+      if (remaining > 0) parts.push(remaining + ' drab' + (remaining > 1 ? 's' : ''));
+      return parts.join(', ');
+    }
+
+    function hungerLabel(hunger) {
+      if (hunger <= 20) return 'well-fed';
+      if (hunger <= 50) return 'peckish';
+      if (hunger <= 80) return 'hungry';
+      return 'starving';
+    }
+
+    function fatigueLabel(fatigue) {
+      if (fatigue <= 20) return 'rested';
+      if (fatigue <= 50) return 'tired';
+      if (fatigue <= 80) return 'weary';
+      return 'exhausted';
+    }
+
+    function relationshipLabel(value) {
+      if (value <= 20) return 'distrusts you';
+      if (value <= 40) return 'tolerates you';
+      if (value <= 60) return 'neutral';
+      if (value <= 80) return 'likes you';
+      return 'respects you';
+    }
+
+    function tuitionLabel(state) {
+      if (state.tuition_state.paid) return 'Paid ✓';
+      const daysLeft = state.tuition_state.due_on_day - state.day_number;
+      if (daysLeft <= 0) return `OVERDUE (${Math.abs(daysLeft)} days)`;
+      return `${state.tuition_state.amount_drabs} drabs due in ${daysLeft} days`;
+    }
+
+    // ==================== NPC SYSTEM ====================
+    const NPCS = {
+      simmon: {
+        id: 'simmon',
+        name: 'Simmon',
+        location_id: 'university_mains',
+        schedule: { morning: 'university_mains', afternoon: 'university_archives_exterior', evening: 'university_dormitory_commons', night: 'university_dormitory_commons' },
+        personality: 'friendly and earnest',
+        dialogues: {
+          greeting: {
+            text: '"Kvothe! Good to see you. How are you managing?"',
+            options: [
+              { text: 'ask about studies', topic: 'studies' },
+              { text: 'ask about the Eolian', topic: 'eolian' },
+              { text: '[wit] charm him for information', topic: 'charm', skill: 'wit', difficulty: 40, affect_relationship: 15 },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          studies: {
+            text: '"The Masters have been relentless with assignments. If you want to advance your rank, you\'ll need to focus on your academics."',
+            options: [
+              { text: 'ask about the Archives', topic: 'archives' },
+              { text: 'ask something else', topic: 'greeting' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          charm: {
+            text: '"You\'re a charmer, Kvothe, I\'ll give you that. The Masters respect you more than most E\'lir. Keep it up and you\'ll do well here."',
+            options: [
+              { text: 'ask about the Archives', topic: 'archives' },
+              { text: 'ask about the Eolian', topic: 'eolian' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          eolian: {
+            text: '"The Eolian is where the real music happens. If you ever want to play, the patrons are generous with coin."',
+            options: [
+              { text: 'ask about studies', topic: 'studies' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          archives: {
+            text: '"You\'ll need to be at least Re\'lar to enter the Stacks. The Masters are strict about that sort of thing."',
+            options: [
+              { text: 'ask about studies', topic: 'studies' },
+              { text: 'leave', topic: 'end' }
+            ]
+          }
+        }
+      },
+      wilem: {
+        id: 'wilem',
+        name: 'Wilem',
+        location_id: 'university_archives_exterior',
+        schedule: { morning: 'university_archives_exterior', afternoon: 'university_medica', evening: 'university_dormitory_commons', night: 'university_dormitory_commons' },
+        personality: 'gruff and practical',
+        dialogues: {
+          greeting: {
+            text: '"Eh. What brings you out here?"',
+            options: [
+              { text: 'ask about the Archives', topic: 'archives' },
+              { text: 'ask about studies', topic: 'studies' },
+              { text: '[authority] demand access to the Stacks', topic: 'demand', skill: 'authority', difficulty: 60, affect_relationship: -20 },
+              { text: '[wit] persuade him you\'re ready', topic: 'persuade', skill: 'wit', difficulty: 45, affect_relationship: 10 },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          archives: {
+            text: '"The Archives are not for the likes of an E\'lir. Master yourself first, then worry about the Stacks."',
+            options: [
+              { text: 'ask about studies', topic: 'studies' },
+              { text: '[wit] persuade him you\'re ready', topic: 'persuade', skill: 'wit', difficulty: 45, affect_relationship: 10 },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          persuade: {
+            text: '"Hm. Perhaps you\'ve got more sense than most E\'lir. Come back when you\'ve proven yourself more."',
+            options: [
+              { text: 'ask about studies', topic: 'studies' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          demand: {
+            text: '"Arrogant whelp. Get out of my sight."',
+            options: [
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          studies: {
+            text: '"Hard work and discipline. That\'s what the University rewards. Everything else is distraction."',
+            options: [
+              { text: 'ask about the Archives', topic: 'archives' },
+              { text: 'leave', topic: 'end' }
+            ]
+          }
+        }
+      },
+      elodin: {
+        id: 'elodin',
+        name: 'Master Elodin',
+        location_id: 'university_master_dalcenti_study',
+        personality: 'mysterious and insightful',
+        dialogues: {
+          greeting: {
+            text: '"Ah, Kvothe. Your reputation precedes you. What brings you to my study?"',
+            options: [
+              { text: 'ask about naming', topic: 'naming' },
+              { text: 'ask about advancement', topic: 'advancement' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          naming: {
+            text: '"Names hold power. The true name of a thing is the thing itself. This is the heart of what we study here."',
+            options: [
+              { text: 'ask about advancement', topic: 'advancement' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          advancement: {
+            text: '"Advancement comes to those who understand. Books are windows, but experience is the key. Seek the deeper mysteries."',
+            options: [
+              { text: 'ask about naming', topic: 'naming' },
+              { text: 'leave', topic: 'end' }
+            ]
+          }
+        }
+      },
+      kilvin: {
+        id: 'kilvin',
+        name: 'Master Kilvin',
+        location_id: 'university_fishery_outer',
+        personality: 'practical and demanding',
+        dialogues: {
+          greeting: {
+            text: '"Kvothe. You looking to learn something, or just wasting my time?"',
+            options: [
+              { text: 'ask about artificing', topic: 'artificing' },
+              { text: 'ask about the Fishery', topic: 'fishery' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          artificing: {
+            text: '"Artificing is about understanding the nature of things. A tool that doesn\'t work is just metal and frustration."',
+            options: [
+              { text: 'ask about the Fishery', topic: 'fishery' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          fishery: {
+            text: '"The Fishery is where discipline is learned. Anyone can swing a hammer, but it takes focus to make something worthwhile."',
+            options: [
+              { text: 'ask about artificing', topic: 'artificing' },
+              { text: 'leave', topic: 'end' }
+            ]
+          }
+        }
+      },
+      dal: {
+        id: 'dal',
+        name: 'Master Dal',
+        location_id: 'university_mains',
+        schedule: { morning: 'university_mains_hall', afternoon: 'university_fishery_outer', evening: 'university_mains', night: null },
+        personality: 'stern and careful',
+        dialogues: {
+          greeting: {
+            text: '"Kvothe. You\'ve come to discuss sympathy, I assume. Be warned - it is not for the weak of mind."',
+            options: [
+              { text: 'ask about sympathy', topic: 'sympathy' },
+              { text: 'ask about bindings', topic: 'bindings' },
+              { text: 'ask about advancement', topic: 'advancement' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          sympathy: {
+            text: '"Sympathy is not for the overconfident. Better you should know your honest limit than overguess your abilities and lose control. Carelessness leads to death."',
+            options: [
+              { text: 'ask about bindings', topic: 'bindings' },
+              { text: 'ask about advancement', topic: 'advancement' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          bindings: {
+            text: '"A binding is a careful balance. The body is a delicate thing. Lose control of the heat, and you might damage yourself or those around you. Focus is essential."',
+            options: [
+              { text: 'ask about sympathy', topic: 'sympathy' },
+              { text: 'ask about advancement', topic: 'advancement' },
+              { text: 'leave', topic: 'end' }
+            ]
+          },
+          advancement: {
+            text: '"Show me mastery and you may advance. Prove yourself through careful study and disciplined practice."',
+            options: [
+              { text: 'ask about sympathy', topic: 'sympathy' },
+              { text: 'leave', topic: 'end' }
+            ]
+          }
+        }
+      }
+    };
+
+    // ==================== GAME STATE ====================
+    const gameState = {
+      locations: {},
+      playerState: null,
+      currentConversation: null
+    };
+
+    function initializeLocations() {
+      SEED_LOCATIONS.forEach(loc => {
+        gameState.locations[loc.id] = loc;
+      });
+    }
+
+    function getLocation(id) {
+      return gameState.locations[id] || null;
+    }
+
+    function initDefaultPlayerState() {
+      return {
+        character_id: 'kvothe',
+        era: 'university',
+        location_id: 'university_mains',
+        money_drabs: 300,
+        inventory: [{ id: 'lute', name: "Kvothe's lute", quantity: 1, notes: 'Old but well-kept.' }],
+        reputation: { academic_standing: 50, university_social: 40, eolian_standing: 30, npc_trust: {} },
+        time_of_day: 'morning',
+        day_number: 1,
+        term_number: 1,
+        injuries: [],
+        hunger: 10,
+        fatigue: 10,
+        academic_rank: 'E_lir',
+        tuition_state: { amount_drabs: 1000, due_on_day: 30, paid: false, overdue: false },
+        classes_attended: [],
+        world_state_flags: {},
+        // NPC Relationship system (0-100, 50 = neutral)
+        npc_relationships: {
+          simmon: 50,
+          wilem: 40,
+          elodin: 50,
+          kilvin: 50,
+          dal: 50
+        },
+        // Character skills for dialogue checks
+        skills: {
+          wit: 45,        // Persuasion, charm, cleverness
+          empathy: 50,    // Understanding, sincerity
+          authority: 40,  // Commanding respect, boldness
+          scholarship: 55 // Academic knowledge
+        },
+        conversation_history: [] // Track who you've talked to
+      };
+    }
+
+    function loadGameState() {
+      const saved = localStorage.getItem('kkcGameState');
+      if (saved) {
+        gameState.playerState = JSON.parse(saved);
+      } else {
+        gameState.playerState = initDefaultPlayerState();
+        saveGameState();
+      }
+    }
+
+    function saveGameState() {
+      localStorage.setItem('kkcGameState', JSON.stringify(gameState.playerState));
+    }
+
+    function advanceTime(state, steps = 1) {
+      const timeCycle = ['morning', 'afternoon', 'evening', 'night'];
+      let nextTime = state.time_of_day;
+      let dayNumber = state.day_number;
+      let hunger = state.hunger;
+      let fatigue = state.fatigue;
+
+      for (let i = 0; i < steps; i++) {
+        const currentIndex = timeCycle.indexOf(nextTime);
+        nextTime = timeCycle[(currentIndex + 1) % timeCycle.length];
+        if (nextTime === 'morning') dayNumber++;
+        hunger = Math.min(100, hunger + 8);
+        fatigue = Math.min(100, fatigue + 6);
+      }
+
+      return { ...state, time_of_day: nextTime, day_number: dayNumber, hunger, fatigue };
+    }
+
+    function eat(state) {
+      if (state.hunger < 20) {
+        return { message: 'You are not hungry enough to eat right now.', newState: state };
+      }
+      const newState = { ...state, hunger: Math.max(0, state.hunger - 30) };
+      return { message: 'You find something to eat. The meal settles your stomach.', newState };
+    }
+
+    function sleep(state) {
+      if (state.fatigue < 20) {
+        return { message: 'You are not tired enough to sleep right now.', newState: state };
+      }
+      const newState = { ...state, fatigue: Math.max(0, state.fatigue - 40), hunger: Math.min(100, state.hunger + 15) };
+      return { message: 'You sleep deeply. When you wake, you feel rested.', newState };
+    }
+
+    function busk(state) {
+      if (state.time_of_day === 'night') {
+        return { message: 'The courtyard is empty at night. No patrons to entertain.', newState: state };
+      }
+      const roll = Math.floor(Math.random() * 100);
+      const witSkill = state.skills.wit || 0;
+      const success = roll + witSkill > 50;
+
+      if (success) {
+        const earnings = 10 + Math.floor(Math.random() * 15);
+        const newState = { ...state, money_drabs: state.money_drabs + earnings };
+        return { message: `You perform for the students and travelers. They reward your music generously—you earn ${earnings} drabs.`, newState };
+      } else {
+        return { message: 'You play your lute, but the crowd pays you little mind. You earn a few drabs.', newState: { ...state, money_drabs: state.money_drabs + 2 } };
+      }
+    }
+
+    function payTuition(state) {
+      if (state.tuition_state.paid) {
+        return { message: 'Your tuition is already paid in full.', newState: state };
+      }
+      if (state.money_drabs < state.tuition_state.amount_drabs) {
+        return { message: `You cannot afford to pay your tuition. You need ${state.tuition_state.amount_drabs} drabs, but only have ${state.money_drabs}.`, newState: state };
+      }
+      const newState = {
+        ...state,
+        money_drabs: state.money_drabs - state.tuition_state.amount_drabs,
+        tuition_state: { ...state.tuition_state, paid: true }
+      };
+      return { message: 'You present the Master with your tuition payment. The debt is settled.', newState };
+    }
+
+    function study(state, subject = 'general') {
+      const newState = advanceTime(state);
+      const skillMap = {
+        'wit': 'wit',
+        'empathy': 'empathy',
+        'authority': 'authority',
+        'scholarship': 'scholarship',
+        'general': null
+      };
+
+      const skill = skillMap[subject] || null;
+      let message = '';
+
+      if (skill) {
+        const improvement = 1 + Math.floor(Math.random() * 3);
+        newState.skills[skill] = Math.min(100, newState.skills[skill] + improvement);
+        message = `You spend the hour studying. Your ${skill} improves slightly (+${improvement}).`;
+      } else {
+        const skills = ['wit', 'empathy', 'authority', 'scholarship'];
+        const randomSkill = skills[Math.floor(Math.random() * skills.length)];
+        const improvement = Math.floor(Math.random() * 2);
+        if (improvement > 0) {
+          newState.skills[randomSkill] = Math.min(100, newState.skills[randomSkill] + improvement);
+          message = `You spend the hour studying at your books. Your ${randomSkill} increases (+${improvement}).`;
+        } else {
+          message = 'You study hard, but the knowledge seems to elude you today.';
+        }
+      }
+
+      return { message, newState };
+    }
+
+    function getAccessibleExits(location, state) {
+      return location.exits.filter(exit => {
+        if (!exit.access_condition) return true;
+        if (exit.access_condition === 'requires_Re_lar') {
+          return state.academic_rank === 'Re_lar' || state.academic_rank === 'El_the';
+        }
+        if (exit.access_condition === 'locked_at_night') {
+          return state.time_of_day !== 'night';
+        }
+        return true;
+      });
+    }
+
+    function renderExitLine(exits) {
+      if (exits.length === 0) return 'There is no obvious way out.';
+      const dirs = exits.map(e => e.direction);
+      if (dirs.length === 1) return `You could go ${dirs[0]}.`;
+      if (dirs.length === 2) return `You could go ${dirs[0]} or ${dirs[1]}.`;
+      const initial = dirs.slice(0, -1).join(', ');
+      const final = dirs[dirs.length - 1];
+      return `You could go ${initial}, or ${final}.`;
+    }
+
+    function renderLocation(location, state, exits) {
+      const lines = [];
+      lines.push(`--- ${capitalizeFirst(location.name)} ---`);
+      lines.push(location.description_base);
+
+      const flavourLines = LOCATION_FLAVOUR[location.id];
+      if (flavourLines && flavourLines.length > 0) {
+        const index = (state.day_number + timeIndex(state.time_of_day)) % flavourLines.length;
+        lines.push(flavourLines[index]);
+      }
+
+      lines.push(`It is ${timeLabel(state.time_of_day)}.`);
+      lines.push(renderExitLine(exits));
+      return lines.join('\n');
+    }
+
+    function renderStatus(state) {
+      return [
+        `Character: ${state.character_id} (${state.era})`,
+        `Current location: ${state.location_id}`,
+        `Money: ${formatCurrency(state.money_drabs)}`,
+        `Academic rank: ${state.academic_rank}`,
+        `Time: ${state.time_of_day}, day ${state.day_number}, term ${state.term_number}`,
+        `Condition: ${hungerLabel(state.hunger)}, ${fatigueLabel(state.fatigue)}`
+      ].join('\n');
+    }
+
+    function renderInventory(state) {
+      if (state.inventory.length === 0) return 'You are carrying nothing of note.';
+      return state.inventory
+        .map(item => {
+          const notes = item.notes ? ` (${item.notes})` : '';
+          return `- ${item.name} x${item.quantity}${notes}`;
+        })
+        .join('\n');
+    }
+
+    function movePlayer(state, direction) {
+      const location = getLocation(state.location_id);
+      if (!location) return { success: false, newState: state, message: 'You hesitate, unsure where to set your feet.' };
+
+      const exit = location.exits.find(e => e.direction.toLowerCase() === direction.toLowerCase());
+      if (!exit) return { success: false, newState: state, message: 'You cannot go that way.' };
+
+      if (exit.access_condition === 'requires_Re_lar' && (state.academic_rank === 'E_lir' || state.academic_rank === 'none')) {
+        return { success: false, newState: state, message: "The Stacks are closed to you. Only a Re'lar may enter the Archives unescorted." };
+      }
+
+      if (exit.access_condition === 'locked_at_night' && state.time_of_day === 'night') {
+        return { success: false, newState: state, message: 'That way is shut for the night.' };
+      }
+
+      return { success: true, newState: { ...state, location_id: exit.target_location_id }, message: '' };
+    }
+
+    function renderHelp() {
+      return [
+        'If you are at a loss, begin by looking around and taking stock.',
+        'You can go north, south, east, west, up, down, enter, or out when the way is open.',
+        'Try wait if you mean to let the hour pass, and keep status or inventory close at hand.',
+        'Speak to people you meet: "talk to [name]" or "ask [name] about [topic]"'
+      ].join('\n');
+    }
+
+    function getNPCLocation(npc, time) {
+      if (npc.schedule) return npc.schedule[time] || npc.location_id;
+      return npc.location_id;
+    }
+
+    function getNPCsAtLocation(location_id, time = 'morning') {
+      return Object.values(NPCS).filter(npc => getNPCLocation(npc, time) === location_id);
+    }
+
+    function getNPCByName(name) {
+      const normalized = name.toLowerCase();
+      return Object.values(NPCS).find(npc => npc.name.toLowerCase().includes(normalized));
+    }
+
+    function renderDialogue(npc, topic, state) {
+      const dialogue = npc.dialogues[topic] || npc.dialogues.greeting;
+      if (!dialogue) return `${npc.name} has nothing to say about that.`;
+
+      let text = `${npc.name} says:\n${dialogue.text}\n`;
+      const relationship = state.npc_relationships[npc.id] || 50;
+      if (relationship > 70) {
+        text += `\n(${npc.name} seems quite fond of you.)`;
+      } else if (relationship < 40) {
+        text += `\n(${npc.name} seems somewhat distant.)`;
+      }
+
+      if (dialogue.options && dialogue.options.length > 0) {
+        text += '\n\nYou could:\n';
+        dialogue.options.forEach((opt, i) => {
+          let optText = `  ${i + 1}. ${opt.text}`;
+          if (opt.skill) {
+            const playerSkill = state.skills[opt.skill] || 0;
+            const difficulty = opt.difficulty || 50;
+            const chance = Math.max(0, Math.min(100, playerSkill - difficulty + 50));
+            optText += ` [${opt.skill} ${playerSkill}/${difficulty}] (${chance}% chance)`;
+          }
+          text += optText + '\n';
+        });
+      }
+      return text;
+    }
+
+    function getNPCsInLocationDescription(location_id, time = 'morning') {
+      const npcs = getNPCsAtLocation(location_id, time);
+      if (npcs.length === 0) return '';
+      const npcText = npcs.map(npc => `${npc.name} is here.`).join('\n');
+      return '\n' + npcText;
+    }
+
+    const waitLines = [
+      'A little while passes, quiet as turning pages.',
+      'You linger where you are and let the hour move on.',
+      'The day shifts almost without asking your leave.',
+      'You wait, and the University settles into a slightly different rhythm.'
+    ];
+
+    const fallbackLines = [
+      'The thought passes without resolution.',
+      'Nothing comes of that just now.',
+      'You hesitate, then let the notion go.',
+      'The moment offers no clear answer.',
+      'For now, the University keeps its own counsel.'
+    ];
+
+    function dispatch(input, state) {
+      const normalized = input.trim().toLowerCase();
+
+      // Handle talk to [npc]
+      if (normalized.startsWith('talk to ')) {
+        const npcName = normalized.substring(8).trim();
+        const npc = getNPCByName(npcName);
+        if (!npc) return { output: 'You do not see anyone by that name.', newState: state };
+
+        const npcsHere = getNPCsAtLocation(state.location_id, state.time_of_day);
+        if (!npcsHere.find(n => n.id === npc.id)) {
+          return { output: `${npc.name} is not here.`, newState: state };
+        }
+
+        gameState.currentConversation = { npc, topic: 'greeting' };
+        const dialogue = npc.dialogues.greeting;
+        if (dialogue) {
+          // Use special formatting for dialogue
+          appendFormattedDialogue(npc.name, dialogue.text);
+          const dialogueOptions = renderDialogue(npc, 'greeting', state);
+          const optionsText = dialogueOptions.split('\n\n').pop();
+          appendOutput(optionsText);
+          return { output: '', newState: state, isConversation: true, shouldReturn: true };
+        }
+        return { output: renderDialogue(npc, 'greeting', state), newState: state, isConversation: true };
+      }
+
+      // Handle ask [npc] about [topic]
+      if (normalized.startsWith('ask ')) {
+        const parts = normalized.substring(4).split(' about ');
+        if (parts.length < 2) return { output: 'Ask whom about what?', newState: state };
+
+        const npcName = parts[0].trim();
+        const topic = parts[1].trim();
+        const npc = getNPCByName(npcName);
+        if (!npc) return { output: 'You do not see anyone by that name.', newState: state };
+
+        const npcsHere = getNPCsAtLocation(state.location_id, state.time_of_day);
+        if (!npcsHere.find(n => n.id === npc.id)) {
+          return { output: `${npc.name} is not here.`, newState: state };
+        }
+
+        gameState.currentConversation = { npc, topic };
+        const dialogue = npc.dialogues[topic];
+        if (dialogue) {
+          appendFormattedDialogue(npc.name, dialogue.text);
+          const dialogueOptions = renderDialogue(npc, topic, state);
+          const optionsText = dialogueOptions.split('\n\n').pop();
+          appendOutput(optionsText);
+          return { output: '', newState: state, isConversation: true, shouldReturn: true };
+        }
+        return { output: renderDialogue(npc, topic, state), newState: state, isConversation: true };
+      }
+
+      // Handle numbered responses in conversation
+      if (gameState.currentConversation && !isNaN(parseInt(normalized))) {
+        const num = parseInt(normalized) - 1;
+        const currentNpc = gameState.currentConversation.npc;
+        const currentTopic = gameState.currentConversation.topic;
+        const dialogue = currentNpc.dialogues[currentTopic];
+
+        if (dialogue && dialogue.options && dialogue.options[num]) {
+          const selectedOption = dialogue.options[num];
+          let newState = { ...state };
+          let relationshipChange = 0;
+
+          // Handle skill checks
+          if (selectedOption.skill) {
+            const playerSkill = state.skills[selectedOption.skill] || 0;
+            const difficulty = selectedOption.difficulty || 50;
+            const roll = Math.floor(Math.random() * 100);
+            const adjustedRoll = roll + playerSkill;
+            const success = adjustedRoll >= difficulty;
+
+            if (success) {
+              if (selectedOption.affect_relationship) {
+                relationshipChange = selectedOption.affect_relationship;
+                newState.npc_relationships[currentNpc.id] = Math.min(100, newState.npc_relationships[currentNpc.id] + relationshipChange);
+              }
+            } else {
+              if (selectedOption.affect_relationship) {
+                relationshipChange = -Math.abs(selectedOption.affect_relationship) / 2;
+                newState.npc_relationships[currentNpc.id] = Math.max(0, newState.npc_relationships[currentNpc.id] + relationshipChange);
+              }
+            }
+
+            // Show skill result with visual feedback
+            appendSkillResult(success, currentNpc.name, relationshipChange);
+          } else {
+            // No skill check - just affect relationship if applicable
+            if (selectedOption.affect_relationship) {
+              relationshipChange = selectedOption.affect_relationship;
+              newState.npc_relationships[currentNpc.id] = Math.min(100, newState.npc_relationships[currentNpc.id] + relationshipChange);
+              appendSkillResult(true, currentNpc.name, relationshipChange);
+            }
+          }
+
+          const nextTopic = selectedOption.topic;
+          if (nextTopic === 'end') {
+            gameState.currentConversation = null;
+            appendOutput('You end the conversation.');
+            saveGameState();
+            updateSidebar(newState);
+            return { output: '', newState, shouldReturn: true };
+          }
+
+          gameState.currentConversation.topic = nextTopic;
+          saveGameState();
+          updateSidebar(newState);
+
+          // Display the next dialogue
+          const nextDialogue = currentNpc.dialogues[nextTopic];
+          if (nextDialogue) {
+            appendFormattedDialogue(currentNpc.name, nextDialogue.text);
+            const dialogueOptions = renderDialogue(currentNpc, nextTopic, newState);
+            appendOutput(dialogueOptions.split('\n\n').pop()); // Show just the options part
+          }
+
+          return { output: '', newState, isConversation: true, shouldReturn: true };
+        }
+      }
+
+      if (normalized === 'look' || normalized === 'look around') {
+        const location = getLocation(state.location_id);
+        if (!location) return { output: 'You pause, but the place resists description.', newState: state };
+        const exits = getAccessibleExits(location, state);
+        const npcText = getNPCsInLocationDescription(state.location_id, state.time_of_day);
+        return { output: renderLocation(location, state, exits) + npcText, newState: state };
+      }
+
+      const directions = ['north', 'south', 'east', 'west', 'up', 'down', 'enter', 'out'];
+      const parts = normalized.split(/\s+/);
+      let moveDir = null;
+
+      if (directions.includes(parts[0])) {
+        moveDir = parts[0];
+      } else if (parts[0] === 'go' && parts.length > 1 && directions.includes(parts[1])) {
+        moveDir = parts[1];
+      }
+
+      if (moveDir) {
+        const moveResult = movePlayer(state, moveDir);
+        if (!moveResult.success) {
+          return { output: moveResult.message, newState: state };
+        }
+        const newLoc = getLocation(moveResult.newState.location_id);
+        if (!newLoc) return { output: 'You arrive, but the place feels strangely insubstantial.', newState: moveResult.newState };
+        const exits = getAccessibleExits(newLoc, moveResult.newState);
+        const npcText = getNPCsInLocationDescription(moveResult.newState.location_id, moveResult.newState.time_of_day);
+        return { output: `You make your way ${moveDir}.\n\n${renderLocation(newLoc, moveResult.newState, exits)}${npcText}`, newState: moveResult.newState };
+      }
+
+      if (normalized === 'wait') {
+        const newState = advanceTime(state);
+        const location = getLocation(newState.location_id);
+        if (!location) return { output: waitLines[newState.day_number % 4], newState };
+        const exits = getAccessibleExits(location, newState);
+        const npcText = getNPCsInLocationDescription(newState.location_id, newState.time_of_day);
+        return { output: `${waitLines[newState.day_number % 4]}\n\n${renderLocation(location, newState, exits)}${npcText}`, newState };
+      }
+
+      if (normalized === 'eat') {
+        const result = eat(state);
+        return { output: result.message, newState: result.newState };
+      }
+
+      if (normalized === 'sleep' || normalized === 'rest') {
+        const result = sleep(state);
+        return { output: result.message, newState: result.newState };
+      }
+
+      if (normalized === 'busk' || normalized === 'play' || normalized === 'perform') {
+        const result = busk(state);
+        return { output: result.message, newState: result.newState };
+      }
+
+      if (normalized === 'pay tuition' || normalized === 'pay fees') {
+        const result = payTuition(state);
+        return { output: result.message, newState: result.newState };
+      }
+
+      if (normalized.startsWith('study')) {
+        const parts = normalized.split(/\s+/);
+        const subject = parts.length > 1 ? parts[1] : 'general';
+        const result = study(state, subject);
+        return { output: result.message, newState: result.newState };
+      }
+
+      if (normalized === 'attend class' || normalized === 'attend artificing' || normalized === 'attend sympathy' || normalized === 'attend naming') {
+        const newState = advanceTime(state);
+        let masterName = 'a class';
+        let npcId = null;
+        if (normalized.includes('artificing')) { masterName = "Master Kilvin's Artificery class"; npcId = 'kilvin'; }
+        else if (normalized.includes('sympathy')) { masterName = "Master Dal's Sympathy class"; npcId = 'dal'; }
+        else if (normalized.includes('naming')) { masterName = "Master Elodin's Naming seminar"; npcId = 'elodin'; }
+
+        if (npcId) {
+          newState.classes_attended.push({ class: masterName, day: state.day_number });
+          newState.npc_relationships[npcId] = Math.min(100, newState.npc_relationships[npcId] + 3);
+        }
+        return { output: `You attend ${masterName}. Your time and attention are noted.`, newState };
+      }
+
+      if (normalized === 'status' || normalized === 'stats') {
+        return { output: renderStatus(state), newState: state };
+      }
+
+      if (normalized === 'inventory' || normalized === 'inv' || normalized === 'i') {
+        return { output: renderInventory(state), newState: state };
+      }
+
+      if (normalized === 'help') {
+        return { output: renderHelp(), newState: state };
+      }
+
+      if (normalized === 'quit' || normalized === 'exit') {
+        return { output: 'You let the day settle and turn your thoughts elsewhere.', newState: state, shouldExit: true };
+      }
+
+      return { output: fallbackLines[input.length % 5], newState: state };
+    }
+
+    // ==================== UI UPDATE ====================
+    function getRelationshipColor(value) {
+      if (value < 35) return 'rel-low';
+      if (value < 65) return 'rel-medium';
+      return 'rel-high';
+    }
+
+    function updateRelationshipBar(npcId, value) {
+      const numValue = Math.max(0, Math.min(100, value));
+      const element = document.getElementById(`rel${npcId.charAt(0).toUpperCase() + npcId.slice(1)}Bar`);
+      if (element) {
+        element.style.width = numValue + '%';
+        element.className = `relationship-fill ${getRelationshipColor(numValue)}`;
+      }
+    }
+
+    function updateSidebar(state) {
+      const location = getLocation(state.location_id);
+      document.getElementById('charName').textContent = state.character_id;
+      document.getElementById('charLocation').textContent = location ? location.name : state.location_id;
+      document.getElementById('charMoney').textContent = formatCurrency(state.money_drabs);
+      document.getElementById('charRank').textContent = state.academic_rank;
+      document.getElementById('charHunger').textContent = hungerLabel(state.hunger);
+      document.getElementById('charFatigue').textContent = fatigueLabel(state.fatigue);
+      document.getElementById('charTime').textContent = state.time_of_day;
+      document.getElementById('charDay').textContent = state.day_number;
+
+      // Update skills
+      document.getElementById('skillWit').textContent = state.skills.wit;
+      document.getElementById('skillEmpathy').textContent = state.skills.empathy;
+      document.getElementById('skillAuthority').textContent = state.skills.authority;
+      document.getElementById('skillScholarship').textContent = state.skills.scholarship;
+
+      // Update NPC relationships with bars and labels
+      const npcIds = ['simmon', 'wilem', 'elodin', 'kilvin', 'dal'];
+      npcIds.forEach(npcId => {
+        const value = state.npc_relationships[npcId] || 50;
+        const capitalize = npcId === 'dal' ? 'Dal' : npcId.charAt(0).toUpperCase() + npcId.slice(1);
+        document.getElementById(`rel${capitalize}`).textContent = relationshipLabel(value);
+        updateRelationshipBar(npcId, value);
+      });
+
+      // Update tuition status if element exists
+      const tuitionEl = document.getElementById('charTuition');
+      if (tuitionEl) tuitionEl.textContent = tuitionLabel(state);
+
+      // Update classes attended if element exists
+      const classesEl = document.getElementById('charClasses');
+      if (classesEl) classesEl.textContent = `${state.classes_attended.length} attended`;
+    }
+
+    function appendOutput(text, isDialogue = false) {
+      const output = document.getElementById('gameOutput');
+      const div = document.createElement('div');
+      div.textContent = text;
+      div.style.marginBottom = '20px';
+      output.appendChild(div);
+
+      // Auto-scroll to bottom
+      setTimeout(() => {
+        output.scrollTop = output.scrollHeight;
+      }, 0);
+    }
+
+    function appendFormattedDialogue(npcName, dialogueText) {
+      const output = document.getElementById('gameOutput');
+      const div = document.createElement('div');
+      div.style.marginBottom = '20px';
+
+      const header = document.createElement('div');
+      header.className = 'dialogue-text';
+      header.textContent = npcName + ' says:';
+      div.appendChild(header);
+
+      const content = document.createElement('div');
+      content.className = 'dialogue-content';
+      content.textContent = dialogueText;
+      div.appendChild(content);
+
+      output.appendChild(div);
+
+      // Auto-scroll to bottom
+      setTimeout(() => {
+        output.scrollTop = output.scrollHeight;
+      }, 0);
+    }
+
+    function appendSkillResult(success, npcName, change) {
+      const output = document.getElementById('gameOutput');
+      const div = document.createElement('div');
+      div.className = `skill-result ${success ? 'skill-success' : 'skill-failure'}`;
+
+      const result = success ? '✓ SUCCESS' : '✗ FAILED';
+      const relChange = change > 0 ? `+${change}` : `${change}`;
+      div.textContent = `${result}! ${npcName} ${success ? '⬆️' : '⬇️'} ${relChange}`;
+
+      output.appendChild(div);
+
+      setTimeout(() => {
+        output.scrollTop = output.scrollHeight;
+      }, 0);
+    }
+
+    function executeCommand(input) {
+      const result = dispatch(input, gameState.playerState);
+      gameState.playerState = result.newState;
+      saveGameState();
+
+      // Only append output if not already handled by special formatting
+      if (!result.shouldReturn && result.output) {
+        appendOutput(result.output);
+      }
+
+      updateSidebar(gameState.playerState);
+
+      if (result.shouldExit) {
+        document.getElementById('commandInput').disabled = true;
+        document.getElementById('submitBtn').disabled = true;
+      }
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.getElementById('submitBtn').addEventListener('click', () => {
+      const input = document.getElementById('commandInput').value;
+      if (input.trim()) {
+        executeCommand(input);
+        document.getElementById('commandInput').value = '';
+      }
+    });
+
+    document.getElementById('commandInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('submitBtn').click();
+      }
+    });
+
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.getAttribute('data-cmd');
+        executeCommand(cmd);
+      });
+    });
+
+    // ==================== INITIALIZATION ====================
+    window.addEventListener('DOMContentLoaded', () => {
+      initializeLocations();
+      loadGameState();
+      updateSidebar(gameState.playerState);
+
+      // Show welcome and initial location
+      const welcomeText = 'You wake to another University morning, your hands remembering the shape of your lute even before consciousness fully returns. There is much to do.';
+      appendOutput(welcomeText);
+
+      const location = getLocation(gameState.playerState.location_id);
+      if (location) {
+        const exits = getAccessibleExits(location, gameState.playerState);
+        const npcText = getNPCsInLocationDescription(gameState.playerState.location_id, gameState.playerState.time_of_day);
+        const text = renderLocation(location, gameState.playerState, exits) + npcText;
+        appendOutput(text);
+      }
+    });
+  </script>
+</body>
+</html>
