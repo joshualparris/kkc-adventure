@@ -1,0 +1,668 @@
+[
+  {
+    "number": 21,
+    "title": "Reputation Consequence Triggers",
+    "phase_role": "write reputation consequence triggers so academic and social standing start affecting reactions and access in modest, deterministic ways.",
+    "goal": "Introduce consequence triggers on top of the centralised reputation system without adding a huge new world-simulation layer.",
+    "goal_detail": "Focus on small, testable consequences. Examples: low academic standing affects how certain Masters or academic-facing systems respond; very poor trust with Ambrose-related social channels can make specific interactions more hostile. Keep this modest and deterministic.",
+    "scope": [
+      "Add engine/reputationConsequences.ts",
+      "Define trigger helpers for academic standing and selected NPC trust bands",
+      "Wire modest consequence checks into existing relevant flows",
+      "Add tests for trigger thresholds and non-trigger cases"
+    ],
+    "out_of_scope": [
+      "Delayed reputation spread",
+      "Dynamic NPC schedules",
+      "Large-scale hostility systems",
+      "New commands"
+    ],
+    "new_files": [
+      "src/engine/reputationConsequences.ts",
+      "tests/reputationConsequences.test.ts"
+    ],
+    "modified_files": [
+      "src/engine/actions.ts",
+      "src/engine/npcEngine.ts",
+      "src/narration/renderStatus.ts"
+    ],
+    "implementation_sections": "Implement explicit trigger helpers keyed off the shared reputation engine and return one small structured consequence result that existing systems can query instead of duplicating thresholds. Define at least one academic standing trigger band and one Ambrose-related social hostility trigger band. Keep the effects local, readable, and deterministic: access friction, colder responses, or modest hostility gates are in scope; faction frameworks and broad simulation are not. If a consequence message is needed, keep it brief and in-world.",
+    "tests": "Add tests for low academic standing trigger, no-trigger when standing is decent, and an Ambrose-trust-based social hostility check that remains local rather than global.",
+    "success_criteria": [
+      "reputation consequences are centralised and deterministic",
+      "existing systems can query consequence state without duplicating threshold logic",
+      "no delayed spread system is introduced yet",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 22,
+    "title": "Word Travels: Pending Reputation Changes Queue",
+    "phase_role": "add a delayed reputation spread queue so some changes reach the wider world after 1-3 in-game days instead of instantly.",
+    "goal": "Make the world feel more socially believable by separating immediate internal changes from delayed wider awareness.",
+    "goal_detail": "Keep the delayed queue narrow and mechanical. Immediate direct trust changes can remain immediate; broader public-facing reputation shifts can queue and apply later.",
+    "scope": [
+      "Add engine/reputationQueue.ts",
+      "Use a dedicated pending_reputation_changes queue structure with apply_on_day",
+      "Apply queued changes when day advances",
+      "Add tests for delay and one-time application"
+    ],
+    "out_of_scope": [
+      "Large social simulation",
+      "Dynamic rumour spread",
+      "NPC memory systems",
+      "New commands"
+    ],
+    "new_files": [
+      "src/engine/reputationQueue.ts",
+      "tests/reputationQueue.test.ts"
+    ],
+    "modified_files": [
+      "src/engine/time.ts",
+      "src/engine/socialEngine.ts",
+      "src/engine/musicEngine.ts"
+    ],
+    "implementation_sections": "Implement a small pending queue abstraction around a dedicated pending_reputation_changes structure with apply_on_day, change payload, and applied state or removal on completion. Queue only public-facing reputation changes here; direct trust changes remain immediate. When the day advances, apply every due entry in deterministic order, persist the updated reputation result, and clear the queue entry so it cannot fire twice. Do not leave the storage choice open and do not add background simulation.",
+    "tests": "Add tests for queuing a change, not applying it early, applying it on the correct day, and not applying it twice.",
+    "success_criteria": [
+      "pending public reputation changes can be delayed",
+      "queued changes apply on the correct day",
+      "queued changes apply only once",
+      "existing immediate systems still work"
+    ]
+  },
+  {
+    "number": 23,
+    "title": "Archives Access System",
+    "phase_role": "formalise Archives access as requiring Re'lar rank and Lorren's approval, with proper in-world denial handling.",
+    "goal": "Turn the existing Archives restrictions into one clear system rather than scattered checks.",
+    "goal_detail": "Use the canon-safe MVP rule already established: the Stacks require Re'lar and Lorren's approval. Keep denial grounded and institutional.",
+    "scope": [
+      "Add engine/archivesAccess.ts",
+      "Track Lorren approval in world_state as a single explicit access flag",
+      "Centralise access checks and denial text",
+      "Add tests for rank and approval combinations"
+    ],
+    "out_of_scope": [
+      "Full Archives browsing",
+      "Lorren as a full active NPC system",
+      "Research mechanics",
+      "New map areas beyond current Archives spaces"
+    ],
+    "new_files": [
+      "src/engine/archivesAccess.ts",
+      "tests/archivesAccess.test.ts"
+    ],
+    "modified_files": [
+      "src/types/index.ts",
+      "src/engine/movement.ts",
+      "src/narration/renderLocation.ts"
+    ],
+    "implementation_sections": "Create one Archives access helper that determines whether the player may enter the Stacks by checking two explicit conditions: Re'lar rank and a Lorren approval flag stored in world_state. Return a clean in-world failure line when blocked, and make movement and location rendering call the same helper instead of scattering checks. Reuse existing rank and canon registry truth, but do not expand this into research mechanics or broader Archives simulation.",
+    "tests": "Add tests for blocked E'lir, blocked Re'lar without approval, and successful access when both Re'lar rank and Lorren approval are present.",
+    "success_criteria": [
+      "Archives access logic is centralised",
+      "the Stacks require Re'lar and approval",
+      "denial messages are grounded and consistent",
+      "movement/rendering respect the shared access logic"
+    ]
+  },
+  {
+    "number": 24,
+    "title": "Basic Sympathy Action Standardisation",
+    "phase_role": "turn the early sympathy system into one clear MVP action path with deterministic pass/fail and consistent consequences.",
+    "goal": "Consolidate sympathy action handling so later prompts can build on a stable core.",
+    "goal_detail": "Use the systems already introduced: links, warmth/body heat, materials, and simple backlash/slip outcomes. This is not full naming or advanced sympathy depth yet.",
+    "scope": [
+      "Add engine/sympathyAction.ts as the central sympathy action module",
+      "Route existing sympathy use through shared helpers",
+      "Standardise consequences and result text hooks",
+      "Add tests for successful, failed, and unsafe actions"
+    ],
+    "out_of_scope": [
+      "Advanced sympathy chaining",
+      "Naming",
+      "Alchemy",
+      "Crafting"
+    ],
+    "new_files": [
+      "src/engine/sympathyAction.ts",
+      "tests/sympathyAction.test.ts"
+    ],
+    "modified_files": [
+      "src/engine/actions.ts",
+      "src/engine/sympathyEngine.ts",
+      "src/narration/narrationContext.ts"
+    ],
+    "implementation_sections": "Implement one central sympathy action path in src/engine/sympathyAction.ts and route existing sympathy use through it rather than leaving logic split across call sites. Define the minimum deterministic decision flow: validate inputs, check link/material/heat requirements, resolve success or failure, apply cost, then assign one consequence bucket such as safe success, blocked attempt, backlash, or slip. The engine owns the full result object and narration only renders it.",
+    "tests": "Add tests for a valid action, a blocked action due to missing material or unsafe condition, and a failed action with an appropriate consequence bucket.",
+    "success_criteria": [
+      "sympathy action handling is centralised",
+      "the engine owns all success/failure truth",
+      "later prompts can build on this shared path",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 25,
+    "title": "Canon Event System",
+    "phase_role": "add a small event system where fixed or semi-fixed events can trigger from world conditions without railroading the player.",
+    "goal": "Create the structural layer needed for tuition hearing, first Eolian audition framing, and later University events.",
+    "goal_detail": "Keep the event system modest: trigger conditions, fixed vs flexible framing, and world state changes. Do not explode into branching narrative infrastructure.",
+    "scope": [
+      "Add engine/eventEngine.ts",
+      "Define event shape and trigger condition checks",
+      "Add world-state updates on event resolution",
+      "Add tests for trigger evaluation"
+    ],
+    "out_of_scope": [
+      "Large branching story graphs",
+      "Cinematic scripting",
+      "Multi-era story management",
+      "Frontend event UI"
+    ],
+    "new_files": [
+      "src/engine/eventEngine.ts",
+      "tests/eventEngine.test.ts"
+    ],
+    "modified_files": [
+      "src/types/index.ts",
+      "src/engine/actions.ts",
+      "src/engine/state.ts"
+    ],
+    "implementation_sections": "Implement a compact event model with id, trigger_conditions, is_fixed, and world_state_changes. Check triggers after actions. Keep it deterministic and engine-owned.",
+    "tests": "Add tests for unmet triggers, met triggers, single-fire events, and world-state updates.",
+    "success_criteria": [
+      "events can trigger from world conditions",
+      "world_state changes are applied deterministically",
+      "the system is ready for concrete Phase 1 events",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 26,
+    "title": "Tuition Hearing Event",
+    "phase_role": "script the tuition hearing as a canon-grounded fixed event whose framing can vary but whose institutional reality remains intact.",
+    "goal": "Use the event system to make tuition feel like a real University pressure point.",
+    "goal_detail": "Keep the hearing modest and text-centric. The player can affect approach and flavour, but the event remains institutionally bounded.",
+    "scope": [
+      "Add authored tuition hearing event definition",
+      "Tie it to tuition and term conditions",
+      "Add outcome hooks for academic standing/social pressure",
+      "Add tests for trigger and outcome application"
+    ],
+    "out_of_scope": [
+      "Full Masters dialogue roster",
+      "Large branching tribunal scenes",
+      "Rank advancement decisions"
+    ],
+    "new_files": [
+      "src/content/events/tuitionHearing.ts",
+      "tests/tuitionHearingEvent.test.ts"
+    ],
+    "modified_files": [
+      "src/engine/eventEngine.ts",
+      "src/engine/tuitionEngine.ts"
+    ],
+    "implementation_sections": "Use the event system from Prompt 25 and keep the tuition hearing fixed in structure: trigger it from concrete tuition and term conditions, resolve it through one authored event definition, and apply deterministic world or reputation outcomes. Any variation should be limited to brief framing differences from already-existing state such as academic standing or social pressure; do not branch the core event flow and do not over-script every Master yet.",
+    "tests": "Add tests for correct trigger conditions and correct world/reputation changes after the event.",
+    "success_criteria": [
+      "the tuition hearing can trigger correctly",
+      "the event feels institutional and grounded",
+      "the system remains deterministic",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 27,
+    "title": "First Eolian Audition Event Framing",
+    "phase_role": "script the first Eolian audition as a proper event wrapper around the existing music logic.",
+    "goal": "Make the first serious attempt for pipes feel like an event, not just a mechanical function call.",
+    "goal_detail": "Use the existing audition logic and event system together. The player’s prep and condition matter, but the structure remains controlled.",
+    "scope": [
+      "Add an Eolian audition event definition",
+      "Use existing music/audition truth",
+      "Add event framing and world-state updates",
+      "Add tests"
+    ],
+    "out_of_scope": [
+      "New music mechanics",
+      "Denna scene scripting",
+      "Concert-style multi-stage event trees"
+    ],
+    "new_files": [
+      "src/content/events/eolianFirstAudition.ts",
+      "tests/eolianFirstAuditionEvent.test.ts"
+    ],
+    "modified_files": [
+      "src/engine/eventEngine.ts",
+      "src/engine/musicEngine.ts"
+    ],
+    "implementation_sections": "Wrap the existing audition logic rather than replacing it. The event layer should frame the moment and update world state, but not own music truth.",
+    "tests": "Add tests for trigger conditions, successful world-state update, and correct use of underlying audition truth.",
+    "success_criteria": [
+      "the first audition can be framed as an event",
+      "the event uses existing music truth rather than duplicating it",
+      "world state can record that it happened",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 28,
+    "title": "World State Manager",
+    "phase_role": "formalise world state tracking so flags, term context, and event markers live in one coherent place.",
+    "goal": "Make world_state a first-class shared structure rather than a loose collection of flags.",
+    "goal_detail": "Focus on coherent access/update helpers, not on adding lots of new flags.",
+    "scope": [
+      "Add engine/worldStateEngine.ts",
+      "Centralise get/set/update helpers",
+      "Standardise common Phase 1 flags",
+      "Add tests for state mutation and retrieval"
+    ],
+    "out_of_scope": [
+      "Save-slot systems",
+      "Branch visualisation",
+      "Narrative debugging UI"
+    ],
+    "new_files": [
+      "src/engine/worldStateEngine.ts",
+      "tests/worldStateEngine.test.ts"
+    ],
+    "modified_files": [
+      "src/engine/state.ts",
+      "src/engine/eventEngine.ts"
+    ],
+    "implementation_sections": "Implement a small world state helper layer around the existing world_state structure so engine code uses one shared path for reading, setting, and updating flags. Cover concrete categories: relationship and access flags such as has_met_X and archives approval, progression markers such as event ids already fired, and term context such as term_number and days_until_tuition. The helper should define how keys are stored, how updates remain deterministic, and how event and persistence code call into it rather than mutating loose flags directly.",
+    "tests": "Add tests for world-state get/set/update behaviour and compatibility with persisted player/world state.",
+    "success_criteria": [
+      "world_state has a shared management layer",
+      "flags become easier to reason about",
+      "event and progression systems can rely on one shared place",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 29,
+    "title": "Ambrose Conflict Escalation",
+    "phase_role": "turn Ambrose pressure into a staged escalation system rather than isolated incidents.",
+    "goal": "Make Ambrose feel like a persistent social threat without overbuilding a villain system.",
+    "goal_detail": "Use small, deterministic stages. This is still University-level tension, not later-book-scale plotting.",
+    "scope": [
+      "Add ambroseEscalation.ts",
+      "Track escalation stage",
+      "Tie stage changes to social interactions and trust bands",
+      "Add tests for escalation progression"
+    ],
+    "out_of_scope": [
+      "Sabotage scenes",
+      "Theft plots",
+      "Plum bob",
+      "Major disciplinary hearings"
+    ],
+    "new_files": [
+      "src/engine/ambroseEscalation.ts",
+      "tests/ambroseEscalation.test.ts"
+    ],
+    "modified_files": [
+      "src/engine/socialEngine.ts",
+      "src/engine/worldStateEngine.ts"
+    ],
+    "implementation_sections": "Implement a small escalation model stored in world_state, with explicit ordered stages such as quiet_hostility, public_cuttingness, and formal_trouble_pressure. Define what kinds of social interactions or trust-band thresholds move Ambrose from one stage to the next, and make progression advance one stage at a time with no jumps. Keep the consequences local and deterministic: sharper social responses, access friction, or modest institutional pressure are in scope, while sabotage plots and large villain systems are not.",
+    "tests": "Add tests for stage progression, no-jump behaviour, and stable persistence.",
+    "success_criteria": [
+      "Ambrose conflict now escalates coherently",
+      "the escalation remains modest and Phase-1 appropriate",
+      "world state can remember the stage",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 30,
+    "title": "Calendar and Term Structure",
+    "phase_role": "add a simple calendar so days, weeks, and term framing become explicit and deadlines sit on a real timeline.",
+    "goal": "Make time feel like a University term rather than just a day counter.",
+    "goal_detail": "Keep the calendar simple and mechanical. This is for deadline realism, not for seasonal simulation.",
+    "scope": [
+      "Add engine/calendarEngine.ts",
+      "Map day numbers into weeks/term context",
+      "Expose helpers for deadline/date text",
+      "Add tests"
+    ],
+    "out_of_scope": [
+      "Season/weather simulation",
+      "Holiday scheduling",
+      "Multi-term generation"
+    ],
+    "new_files": [
+      "src/engine/calendarEngine.ts",
+      "tests/calendarEngine.test.ts"
+    ],
+    "modified_files": [
+      "src/narration/renderStatus.ts",
+      "src/engine/tuitionEngine.ts"
+    ],
+    "implementation_sections": "Implement a light calendar abstraction around the existing day_number/term_number rather than replacing them. Keep it deterministic and useful for status/deadlines.",
+    "tests": "Add tests for week/day mapping and stable deadline text generation.",
+    "success_criteria": [
+      "the game can express time as part of a term structure",
+      "deadline systems can refer to the calendar cleanly",
+      "existing day tracking remains compatible",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 31,
+    "title": "CLI Status Header",
+    "phase_role": "improve the REPL interface so each turn surfaces location, time, and compact condition info more cleanly.",
+    "goal": "Make the terminal experience more readable without changing underlying systems.",
+    "goal_detail": "This is a usability and presentation pass for the terminal interface only. Do not introduce web or frontend work here.",
+    "scope": [
+      "Add a reusable status header renderer",
+      "Show location/time/condition summary above narration blocks",
+      "Keep the CLI compact",
+      "Add compact header rendering tests"
+    ],
+    "out_of_scope": [
+      "Web UI",
+      "Rich text formatting",
+      "Maps or side panels"
+    ],
+    "new_files": [
+      "src/narration/renderHeader.ts",
+      "tests/renderHeader.test.ts"
+    ],
+    "modified_files": [
+      "src/repl.ts",
+      "src/narration/renderStatus.ts"
+    ],
+    "implementation_sections": "Keep the interface plain and readable. Use one compact header block before scene text. Avoid vertical bloat.",
+    "tests": "Add snapshot-style or string-shape tests for compact header output.",
+    "success_criteria": [
+      "the CLI shows a cleaner status header",
+      "readability improves without changing systems",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 32,
+    "title": "Command Parsing Expansion",
+    "phase_role": "expand command parsing to support the wider MVP verb set cleanly and deterministically.",
+    "goal": "Consolidate the growing command surface so it stays readable and testable.",
+    "goal_detail": "The verbs are already emerging across prompts. This prompt makes parsing consistent rather than adding whole new mechanics.",
+    "scope": [
+      "Standardise command parsing patterns",
+      "Support existing verbs cleanly",
+      "Improve parser tests",
+      "Keep logic deterministic"
+    ],
+    "out_of_scope": [
+      "Natural-language free parsing",
+      "LLM command understanding",
+      "New core mechanics"
+    ],
+    "new_files": [
+      "src/engine/commandParser.ts",
+      "tests/commandParser.test.ts"
+    ],
+    "modified_files": [
+      "src/engine/actions.ts",
+      "src/engine/npcEngine.ts"
+    ],
+    "implementation_sections": "Extract the repetitive command matching into a central parser if and only if that reduces duplication without a large refactor. Keep command families explicit.",
+    "tests": "Add tests for go/talk/ask/examine/use/listen/status/help and ambiguous edge cases.",
+    "success_criteria": [
+      "command parsing is more coherent",
+      "existing commands still work",
+      "no freeform parser overreach is introduced",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 33,
+    "title": "In-World Help Command",
+    "phase_role": "improve the help command so it remains useful without breaking immersion.",
+    "goal": "Make help clearer, context-aware where practical, and still in-world.",
+    "goal_detail": "Use the command set that actually exists by this point. Keep the tone natural and concise.",
+    "scope": [
+      "Centralise help text rendering",
+      "Reflect currently available command families",
+      "Keep tone in-world",
+      "Add tests"
+    ],
+    "out_of_scope": [
+      "Tutorial mode",
+      "Interactive onboarding flow",
+      "Context-sensitive walkthroughs"
+    ],
+    "new_files": [
+      "src/narration/renderHelp.ts",
+      "tests/renderHelp.test.ts"
+    ],
+    "modified_files": [
+      "src/narration/localNarrator.ts",
+      "src/engine/actions.ts"
+    ],
+    "implementation_sections": "Turn help into a maintained renderer rather than scattered strings. Keep it short and useful.",
+    "tests": "Add tests for output containing the current major verb families without using gamey language.",
+    "success_criteria": [
+      "help remains in-world and useful",
+      "the command set is represented accurately",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 34,
+    "title": "Save and Load System",
+    "phase_role": "implement save/load so player_state and world_state can persist beyond the SQLite session if needed.",
+    "goal": "Add explicit save/load files on top of the existing persistence model.",
+    "goal_detail": "Keep the format simple and transparent. This is about reliability, not multiple save-slot UX.",
+    "scope": [
+      "Add saveLoadEngine.ts",
+      "Serialise player_state and world_state to JSON",
+      "Support save and load helpers",
+      "Add tests for round-trip correctness"
+    ],
+    "out_of_scope": [
+      "Multiple save slots",
+      "Cloud sync",
+      "Encryption",
+      "UI save menus"
+    ],
+    "new_files": [
+      "src/engine/saveLoadEngine.ts",
+      "tests/saveLoadEngine.test.ts"
+    ],
+    "modified_files": [
+      "src/repl.ts",
+      "src/engine/state.ts"
+    ],
+    "implementation_sections": "Use plain JSON files with clear structure. Keep save/load explicit and testable. Do not replace the SQLite backing store; layer on top carefully.",
+    "tests": "Add tests for save file creation, load round-trip, and graceful handling of missing files.",
+    "success_criteria": [
+      "state can be serialised and loaded cleanly",
+      "round-trip preserves core fields",
+      "existing persistence is not broken",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 35,
+    "title": "Session Start Flow",
+    "phase_role": "build a clean session start flow for new game vs resume, while staying within the MVP scope.",
+    "goal": "Make starting and resuming play more coherent without adding multi-character era selection yet.",
+    "goal_detail": "The original roadmap imagined character/timeline selection, but the current MVP is still Kvothe/University. Keep the flow honest to that reality.",
+    "scope": [
+      "Add a start menu flow in the REPL",
+      "Support new game vs resume",
+      "Keep Kvothe/University as the only live new-game path",
+      "Add tests where practical"
+    ],
+    "out_of_scope": [
+      "Multiple playable characters",
+      "Multi-era start options",
+      "Fancy menu UI"
+    ],
+    "new_files": [
+      "src/repl/startFlow.ts",
+      "tests/startFlow.test.ts"
+    ],
+    "modified_files": [
+      "src/repl.ts",
+      "src/engine/saveLoadEngine.ts"
+    ],
+    "implementation_sections": "Keep the flow text-based and modest. Do not pretend multiple characters/eras exist if they do not.",
+    "tests": "Add tests for new-game path, resume path, and missing-save fallback.",
+    "success_criteria": [
+      "the player can start a fresh game or resume",
+      "the flow matches the real MVP scope",
+      "all new tests pass"
+    ]
+  },
+  {
+    "number": 36,
+    "title": "Integration Tests for Core MVP Loop",
+    "phase_role": "write integration tests across movement, currency, tuition, and NPC talk for the current University MVP slice.",
+    "goal": "Prove that the MVP loop works across systems, not just in isolated unit tests.",
+    "goal_detail": "Use in-memory or controlled test state. Focus on realistic sequences.",
+    "scope": [
+      "Add an integration test suite",
+      "Cover movement between seeded locations",
+      "Cover tuition payment/deadline path",
+      "Cover a simple NPC conversation path"
+    ],
+    "out_of_scope": [
+      "Full playthrough automation",
+      "Load testing",
+      "Frontend testing"
+    ],
+    "new_files": [
+      "tests/integration_mvp_loop.test.ts"
+    ],
+    "modified_files": [
+      "tests/setup if needed"
+    ],
+    "implementation_sections": "Write sequence-based tests that simulate a few connected turns. Keep them readable.",
+    "tests": "This prompt is itself the test-writing prompt. Cover movement, economy, tuition, and NPC talk in one slice.",
+    "success_criteria": [
+      "core MVP systems are proven together in at least one realistic sequence",
+      "integration tests pass reliably"
+    ]
+  },
+  {
+    "number": 37,
+    "title": "Tone Checker Harness",
+    "phase_role": "build a lightweight tone-checking harness for sample narration outputs.",
+    "goal": "Create a repeatable way to review whether narration drifts into modern idiom, gamey phrasing, or non-Kingkiller tone.",
+    "goal_detail": "Keep it light. This is a review aid, not a production blocker yet.",
+    "scope": [
+      "Add a small tone checker harness or prompt artifact",
+      "Support batch checking of sample outputs",
+      "Focus on modern idiom and gamey language flags"
+    ],
+    "out_of_scope": [
+      "Full automated literary evaluation",
+      "Production moderation systems"
+    ],
+    "new_files": [
+      "tools/tone_check_prompt.md",
+      "tests/tone_check_samples.md"
+    ],
+    "modified_files": [
+      "documentation only if needed"
+    ],
+    "implementation_sections": "Treat this as a workflow tool. You can generate a reusable review prompt and a sample bundle file.",
+    "tests": "No code tests required unless you add helper scripts. The deliverable is the harness artifact.",
+    "success_criteria": [
+      "there is a repeatable tone-review workflow artifact",
+      "the team can review narration samples consistently"
+    ]
+  },
+  {
+    "number": 38,
+    "title": "Lore Guard Adversarial Tests",
+    "phase_role": "stress-test the lore guard with adversarial mystery-extraction attempts.",
+    "goal": "Verify that the structured mystery/lore guard holds under more aggressive prompts.",
+    "goal_detail": "This is not about gameplay — it is about trust in the narration safety layer.",
+    "scope": [
+      "Add adversarial lore guard tests",
+      "Use multiple forbidden-mystery phrasings",
+      "Verify fallback behaviour"
+    ],
+    "out_of_scope": [
+      "New lore systems",
+      "New provider integrations"
+    ],
+    "new_files": [
+      "tests/lore_guard_adversarial.test.ts"
+    ],
+    "modified_files": [
+      "tests/loreGuard.test.ts"
+    ],
+    "implementation_sections": "Test several phrasings and indirect tries. Keep the system deterministic and conservative.",
+    "tests": "This prompt is itself the test-writing prompt. Add multiple adversarial inputs and confirm they are blocked.",
+    "success_criteria": [
+      "the lore guard catches stronger extraction attempts",
+      "fallback behaviour still works",
+      "tests pass reliably"
+    ]
+  },
+  {
+    "number": 39,
+    "title": "Random Turn Stability Test",
+    "phase_role": "simulate many valid turns to look for crashes, state corruption, or broken exits.",
+    "goal": "Find brittle spots in the deterministic engine before the MVP grows further.",
+    "goal_detail": "Keep this practical and bounded rather than building a full fuzzing framework.",
+    "scope": [
+      "Add a random-valid-turn simulation test",
+      "Run a controlled sequence of many turns",
+      "Assert no crashes and sane state bounds"
+    ],
+    "out_of_scope": [
+      "Formal property-based testing frameworks",
+      "Massive fuzzing infrastructure"
+    ],
+    "new_files": [
+      "tests/random_turn_stability.test.ts"
+    ],
+    "modified_files": [
+      "none unless tiny test helpers are needed"
+    ],
+    "implementation_sections": "Use a seeded pseudo-random source or deterministic list so failures are repeatable. Check money, condition, reputation bounds, and valid locations.",
+    "tests": "This prompt is itself the test-writing prompt.",
+    "success_criteria": [
+      "the engine survives many turns without corruption",
+      "state remains within expected bounds",
+      "tests are repeatable"
+    ]
+  },
+  {
+    "number": 40,
+    "title": "Full University Morning Pass",
+    "phase_role": "do a full pass on one believable University morning and early evening loop, fixing coherence gaps.",
+    "goal": "Turn the MVP from a pile of systems into one connected slice that feels playable.",
+    "goal_detail": "Focus on coherence, not feature expansion. Wake, eat, class/social movement, work or study, and an evening music possibility should all feel like one world.",
+    "scope": [
+      "Run a scripted slice through the current MVP",
+      "Note and fix coherence gaps",
+      "Tighten small inconsistencies in status, prompts, and action flow"
+    ],
+    "out_of_scope": [
+      "New major systems",
+      "New regions",
+      "Frontend work"
+    ],
+    "new_files": [
+      "docs/full_pass_university_morning.md"
+    ],
+    "modified_files": [
+      "small targeted fixes across existing files as needed"
+    ],
+    "implementation_sections": "Use this prompt as a disciplined polish pass. Fix only coherence and integration issues discovered during the slice. Keep changes small and justified.",
+    "tests": "Add or update tests only where a discovered bug needs coverage.",
+    "success_criteria": [
+      "one University morning-to-evening slice plays coherently",
+      "small integration gaps are fixed without feature sprawl",
+      "the MVP feels more like a real game than a system bundle"
+    ]
+  }
+]
