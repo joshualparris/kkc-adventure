@@ -136,28 +136,173 @@
     }
 
     .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
       margin-bottom: 10px;
     }
 
+    .btn-group {
+      margin-bottom: 8px;
+    }
+
+    .btn-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      cursor: pointer;
+      user-select: none;
+      color: #8b7355;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-group-header:hover {
+      color: #d4af37;
+    }
+
+    .btn-group-toggle {
+      width: 12px;
+      height: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+
+    .btn-group-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .btn-group-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      padding: 6px 0;
+      max-height: 500px;
+      overflow: hidden;
+      transition: max-height 0.2s ease, opacity 0.2s ease;
+      opacity: 1;
+    }
+
+    .btn-group-buttons.collapsed {
+      max-height: 0;
+      opacity: 0;
+      padding: 0;
+    }
+
     .quick-btn {
-      padding: 8px 12px;
+      padding: 6px 10px;
       background: rgba(60, 60, 80, 0.6);
       border: 1px solid #666;
       color: #b0b0b0;
       cursor: pointer;
       font-family: 'Georgia', serif;
-      font-size: 12px;
+      font-size: 11px;
       border-radius: 3px;
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .quick-btn:hover {
       background: rgba(80, 80, 100, 0.8);
       border-color: #8b7355;
       color: #d4af37;
+    }
+
+    .btn-settings {
+      padding: 6px 10px;
+      background: rgba(60, 60, 80, 0.6);
+      border: 1px solid #666;
+      color: #8b7355;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-size: 11px;
+      border-radius: 3px;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+
+    .btn-settings:hover {
+      background: rgba(80, 80, 100, 0.8);
+      border-color: #d4af37;
+      color: #d4af37;
+    }
+
+    .settings-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-modal.open {
+      display: flex;
+    }
+
+    .settings-modal-content {
+      background: rgba(20, 25, 40, 0.95);
+      border: 2px solid #8b7355;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    }
+
+    .settings-modal h2 {
+      color: #d4af37;
+      font-size: 16px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #8b7355;
+      padding-bottom: 10px;
+    }
+
+    .settings-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 8px;
+      border-radius: 4px;
+      background: rgba(40, 40, 60, 0.3);
+    }
+
+    .settings-item input[type="checkbox"] {
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+      accent-color: #d4af37;
+    }
+
+    .settings-item label {
+      cursor: pointer;
+      color: #c0c0c0;
+      font-size: 12px;
+      flex: 1;
+    }
+
+    .settings-close-btn {
+      padding: 8px 16px;
+      background: #8b7355;
+      border: 1px solid #d4af37;
+      color: #d4af37;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-top: 15px;
+      width: 100%;
+    }
+
+    .settings-close-btn:hover {
+      background: #9b8365;
     }
 
     .sidebar {
@@ -281,26 +426,23 @@
       </div>
       <div id="gameOutput" class="game-output"></div>
       <div class="input-section">
-        <div class="quick-actions">
-          <button class="quick-btn" data-cmd="look">Look</button>
-          <button class="quick-btn" data-cmd="north">Go North</button>
-          <button class="quick-btn" data-cmd="south">Go South</button>
-          <button class="quick-btn" data-cmd="east">Go East</button>
-          <button class="quick-btn" data-cmd="west">Go West</button>
-          <button class="quick-btn" data-cmd="wait">Wait</button>
-          <button class="quick-btn" data-cmd="eat">Eat</button>
-          <button class="quick-btn" data-cmd="sleep">Sleep</button>
-          <button class="quick-btn" data-cmd="busk">Busk</button>
-          <button class="quick-btn" data-cmd="pay tuition">Pay Tuition</button>
-          <button class="quick-btn" data-cmd="attend artificing">Artificing Class</button>
-          <button class="quick-btn" data-cmd="attend sympathy">Sympathy Class</button>
-          <button class="quick-btn" data-cmd="attend naming">Naming Seminar</button>
-          <button class="quick-btn" data-cmd="status">Status</button>
-          <button class="quick-btn" data-cmd="inventory">Inventory</button>
+        <button class="btn-settings" id="settingsBtn">⚙ Button Settings</button>
+        <div class="quick-actions" id="quickActions">
+          <!-- Button groups will be generated here by JavaScript -->
         </div>
         <div class="input-group">
           <input type="text" id="commandInput" placeholder="Enter command or type 'help'..." autofocus>
           <button id="submitBtn">Submit</button>
+        </div>
+      </div>
+
+      <div class="settings-modal" id="settingsModal">
+        <div class="settings-modal-content">
+          <h2>Quick Button Settings</h2>
+          <div id="settingsCheckboxes">
+            <!-- Checkboxes will be generated here by JavaScript -->
+          </div>
+          <button class="settings-close-btn" id="settingsCloseBtn">Close</button>
         </div>
       </div>
     </div>
@@ -430,6 +572,154 @@
   </div>
 
   <script>
+    // ==================== BUTTON CONFIGURATION ====================
+    const BUTTON_GROUPS = [
+      {
+        name: 'Movement',
+        id: 'movement',
+        buttons: [
+          { cmd: 'look', label: 'Look' },
+          { cmd: 'north', label: 'Go North' },
+          { cmd: 'south', label: 'Go South' },
+          { cmd: 'east', label: 'Go East' },
+          { cmd: 'west', label: 'Go West' }
+        ]
+      },
+      {
+        name: 'Actions',
+        id: 'actions',
+        buttons: [
+          { cmd: 'wait', label: 'Wait' },
+          { cmd: 'eat', label: 'Eat' },
+          { cmd: 'sleep', label: 'Sleep' },
+          { cmd: 'busk', label: 'Busk' }
+        ]
+      },
+      {
+        name: 'Classes & Tuition',
+        id: 'classes',
+        buttons: [
+          { cmd: 'attend artificing', label: 'Artificing Class' },
+          { cmd: 'attend sympathy', label: 'Sympathy Class' },
+          { cmd: 'attend naming', label: 'Naming Seminar' },
+          { cmd: 'pay tuition', label: 'Pay Tuition' }
+        ]
+      },
+      {
+        name: 'Info & Status',
+        id: 'info',
+        buttons: [
+          { cmd: 'status', label: 'Status' },
+          { cmd: 'inventory', label: 'Inventory' }
+        ]
+      }
+    ];
+
+    // Load button visibility preferences
+    function loadButtonPreferences() {
+      const saved = localStorage.getItem('buttonPreferences');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+      // Default: all groups visible, all collapsed except first
+      const defaults = {};
+      BUTTON_GROUPS.forEach((group, idx) => {
+        defaults[group.id] = { visible: true, expanded: idx === 0 };
+      });
+      return defaults;
+    }
+
+    // Save button preferences
+    function saveButtonPreferences(prefs) {
+      localStorage.setItem('buttonPreferences', JSON.stringify(prefs));
+    }
+
+    let buttonPreferences = loadButtonPreferences();
+
+    // Render button UI
+    function renderButtonUI() {
+      const container = document.getElementById('quickActions');
+      container.innerHTML = '';
+
+      BUTTON_GROUPS.forEach(group => {
+        if (!buttonPreferences[group.id].visible) return;
+
+        const isExpanded = buttonPreferences[group.id].expanded;
+        const groupEl = document.createElement('div');
+        groupEl.className = 'btn-group';
+
+        const headerEl = document.createElement('div');
+        headerEl.className = 'btn-group-header';
+        headerEl.innerHTML = `
+          <span class="btn-group-toggle ${isExpanded ? '' : 'collapsed'}">▼</span>
+          <span>${group.name}</span>
+        `;
+        headerEl.onclick = () => {
+          buttonPreferences[group.id].expanded = !buttonPreferences[group.id].expanded;
+          saveButtonPreferences(buttonPreferences);
+          renderButtonUI();
+        };
+
+        const buttonsEl = document.createElement('div');
+        buttonsEl.className = `btn-group-buttons ${isExpanded ? '' : 'collapsed'}`;
+        group.buttons.forEach(btn => {
+          const btnEl = document.createElement('button');
+          btnEl.className = 'quick-btn';
+          btnEl.dataset.cmd = btn.cmd;
+          btnEl.textContent = btn.label;
+          buttonsEl.appendChild(btnEl);
+        });
+
+        groupEl.appendChild(headerEl);
+        groupEl.appendChild(buttonsEl);
+        container.appendChild(groupEl);
+      });
+    }
+
+    // Render settings modal
+    function renderSettingsModal() {
+      const container = document.getElementById('settingsCheckboxes');
+      container.innerHTML = '';
+
+      BUTTON_GROUPS.forEach(group => {
+        const item = document.createElement('div');
+        item.className = 'settings-item';
+        item.innerHTML = `
+          <input type="checkbox" id="group-${group.id}" ${buttonPreferences[group.id].visible ? 'checked' : ''}>
+          <label for="group-${group.id}">${group.name}</label>
+        `;
+        const checkbox = item.querySelector('input');
+        checkbox.onchange = () => {
+          buttonPreferences[group.id].visible = checkbox.checked;
+          saveButtonPreferences(buttonPreferences);
+          renderButtonUI();
+        };
+        container.appendChild(item);
+      });
+    }
+
+    // Settings modal handlers
+    function setupSettingsHandlers() {
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsModal = document.getElementById('settingsModal');
+      const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+
+      settingsBtn.onclick = () => {
+        renderSettingsModal();
+        settingsModal.classList.add('open');
+      };
+
+      settingsCloseBtn.onclick = () => {
+        settingsModal.classList.remove('open');
+      };
+
+      settingsModal.onclick = (e) => {
+        if (e.target === settingsModal) {
+          settingsModal.classList.remove('open');
+        }
+      };
+    }
+
     // ==================== GAME DATA ====================
     const LOCATION_FLAVOUR = {
       university_mains: [
@@ -1649,11 +1939,12 @@
       }
     });
 
-    document.querySelectorAll('.quick-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const cmd = btn.getAttribute('data-cmd');
+    // Button event delegation (handles dynamically created buttons)
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('quick-btn')) {
+        const cmd = e.target.getAttribute('data-cmd');
         executeCommand(cmd);
-      });
+      }
     });
 
     // ==================== INITIALIZATION ====================
@@ -1661,6 +1952,10 @@
       initializeLocations();
       loadGameState();
       updateSidebar(gameState.playerState);
+
+      // Initialize button UI and settings
+      renderButtonUI();
+      setupSettingsHandlers();
 
       // Show welcome and initial location
       const welcomeText = 'You wake to another University morning, your hands remembering the shape of your lute even before consciousness fully returns. There is much to do.';
