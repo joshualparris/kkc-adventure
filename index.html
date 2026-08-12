@@ -610,7 +610,8 @@
         id: 'info',
         buttons: [
           { cmd: 'status', label: 'Status' },
-          { cmd: 'inventory', label: 'Inventory' }
+          { cmd: 'inventory', label: 'Inventory' },
+          { cmd: 'map', label: 'Map' }
         ]
       }
     ];
@@ -1299,6 +1300,7 @@
         tuition_state: { amount_drabs: 1000, due_on_day: 30, paid: false, overdue: false },
         classes_attended: [],
         world_state_flags: {},
+        visited_locations: ['university_mains'],
         // NPC Relationship system (0-100, 50 = neutral)
         npc_relationships: {
           simmon: 50,
@@ -1490,6 +1492,54 @@
         .join('\n');
     }
 
+    function renderMap(state) {
+      const visited = state.visited_locations || [state.location_id];
+      const loc = (id, shortName) => {
+        let content = '???';
+        if (state.location_id === id) content = `*${shortName}*`;
+        else if (visited.includes(id)) content = shortName;
+        
+        const totalPad = 14 - content.length;
+        const leftPad = Math.floor(totalPad / 2);
+        const rightPad = Math.max(0, totalPad - leftPad);
+        return '[' + ' '.repeat(Math.max(0, leftPad)) + content + ' '.repeat(rightPad) + ']';
+      };
+
+      const mews_c = loc('university_mews_corridor', 'Mews Cor.');
+      const artif = loc('university_artificery', 'Artificery');
+      const lib = loc('university_library_reading_room', 'Library');
+      const ankers = loc('university_ankers', "Anker's");
+      const court = loc('university_courtyard', 'Courtyard');
+      const mains = loc('university_mains', 'Mains');
+      const arch = loc('university_archives_exterior', 'Archives');
+      const gard = loc('university_gardens', 'Gardens');
+      const med = loc('university_medica', 'Medica');
+      const apoth = loc('university_apothecary', 'Apothecary');
+      const kitch = loc('university_kitchen', 'Kitchen');
+      const dorm = loc('university_dormitory_commons', 'Dorms');
+      
+      return `                             UNIVERSITY MAP
+                             ==============
+                     * denotes your current location
+                    ??? denotes undiscovered areas
+
+                  ${mews_c}  ${artif}  ${lib}
+                          |                 |                 |
+${ankers}--${court}--${mains}--${arch}
+                          |                 |
+                  ${gard}  ${med}--${apoth}
+                          |                 |
+                  ${kitch}--${dorm}
+
+INTERIOR / OTHER AREAS:
+ ${loc('university_mews_room', 'Mews Room')} (In from Mews Cor.)
+ ${loc('university_mains_hall', 'Mains Hall')} (Enter from Mains)
+ ${loc('university_archives_stacks', 'The Stacks')} (Enter from Archives)
+ ${loc('university_master_dalcenti_study', "Dalcenti's")} (West from Library)
+ ${loc('university_fishery_outer', 'Fishery')} (Down from Artificery)
+ ${loc('university_kilns', 'Kilns')} (East from Fishery)`;
+    }
+
     function movePlayer(state, direction) {
       const location = getLocation(state.location_id);
       if (!location) return { success: false, newState: state, message: 'You hesitate, unsure where to set your feet.' };
@@ -1505,14 +1555,22 @@
         return { success: false, newState: state, message: 'That way is shut for the night.' };
       }
 
-      return { success: true, newState: { ...state, location_id: exit.target_location_id }, message: '' };
+      const newState = { ...state, location_id: exit.target_location_id };
+      if (!newState.visited_locations) {
+        newState.visited_locations = [state.location_id];
+      }
+      if (!newState.visited_locations.includes(exit.target_location_id)) {
+        newState.visited_locations.push(exit.target_location_id);
+      }
+
+      return { success: true, newState, message: '' };
     }
 
     function renderHelp() {
       return [
         'If you are at a loss, begin by looking around and taking stock.',
         'You can go north, south, east, west, up, down, enter, or out when the way is open.',
-        'Try wait if you mean to let the hour pass, and keep status or inventory close at hand.',
+        'Try wait if you mean to let the hour pass, and keep status, inventory, or map close at hand.',
         'Speak to people you meet: "talk to [name]" or "ask [name] about [topic]"'
       ].join('\n');
     }
@@ -1786,6 +1844,10 @@
 
       if (normalized === 'status' || normalized === 'stats') {
         return { output: renderStatus(state), newState: state };
+      }
+
+      if (normalized === 'map') {
+        return { output: renderMap(state), newState: state };
       }
 
       if (normalized === 'inventory' || normalized === 'inv' || normalized === 'i') {
